@@ -9,7 +9,7 @@ DEBUG = True
 SECRET_KEY = 'development key'
 
 USERNAME = 'nicolas'
-PASSWORD = '270290'
+PASSWORD = 'nicolas'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
