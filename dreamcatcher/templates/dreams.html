@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	{% if dreams %}
+	<div id='dreams-wrapper'>
+		{% for dream in dreams %}
+		<h2>{{dream.author.nickname}}</h2>
+		<p>{{dream.content}}</p>
+		{% endfor %}
+	</div>
+	{% endif %}
+
+{% endblock %}
