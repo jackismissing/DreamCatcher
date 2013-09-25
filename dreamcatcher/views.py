@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from dreamcatcher import dreamcatcher
-from flask import render_template
+from forms import LoginForm
+from flask import render_template, flash, redirect
+
 
 @dreamcatcher.route('/')
 @dreamcatcher.route('/index')
@@ -23,3 +25,13 @@ def showDreams():
 	]
 
 	return render_template("dreams.html", title = "Dreams", dreams = dreams)
+
+@dreamcatcher.route('/login', methods = ['GET', 'POST'])
+def login():
+	form = LoginForm()
+	if form.validate_on_submit():
+		flash('Username="' + form.username.data + '", remember_me=' + str(form.remember_me.data))
+		return redirect('/index')
+	return render_template('login.html',
+		title='Sign In',
+		form = form)
