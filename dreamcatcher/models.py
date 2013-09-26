@@ -1,5 +1,5 @@
 from dreamcatcher import db
-from werkzeug import generate_password_hash, check_password_hash
+from flaskext.bcrypt import generate_password_hash, check_password_hash
 
 '''
 User Model
@@ -17,7 +17,7 @@ class User(db.Model):
 	def __init__(self, username, email, password):
 		self.username = username
 		self.email = email
-		self.password = self.set_password(password)
+		self.set_password(password)
 
 	'''
 	Model name representation
@@ -28,14 +28,14 @@ class User(db.Model):
 	'''
 	Hashes passwords
 	'''
-	def set_password(self, password):
-		self.passwordhash = generate_password_hash(password)
+	def set_password(self, passwordpost):
+		self.password = generate_password_hash(passwordpost, 10)
 
 	'''
 	Checks hashed passwords
 	'''
-	def check_password(self, password):
-		return check_password_hash(self.passwordhash, password)
+	def check_password(self, passwordpost):
+		return check_password_hash(self.password, passwordpost)
 
 '''
 Dream Model

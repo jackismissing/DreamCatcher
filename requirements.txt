@@ -10,3 +10,4 @@ SQLAlchemy==0.7.9
 flup
 pytz==2013b
 sqlalchemy-migrate
+flask-bcrypt
