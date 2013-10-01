@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from dreamcatcher import dreamcatcher
-from users import Profile
+from dreamcatcher import dreamcatcher, lm
+from models import User
 from forms import LoginForm, SignupForm
-from flask import session, render_template, flash, redirect, request, url_for
+from flask import render_template, flash, redirect, request, url_for, g
+from flask.ext.login import login_user, logout_user, current_user, login_required
 
 
 '''
@@ -36,20 +37,51 @@ def showDreams():
 
 
 '''
-Login route 
+Flask-login load_user method
 '''
-@dreamcatcher.route('/login', methods = ['GET', 'POST'])
-def login():
+@lm.user_loader
+def load_user(id):
+	return User.query.get(int(id))
+
+
+'''
+Flask-login before request method
+'''
+@dreamcatcher.before_request
+def before_request():
+	g.user = current_user
+
+
+'''
+Signing route 
+'''
+@dreamcatcher.route('/signin', methods = ['GET', 'POST'])
+def signin():
+
+	if g.user is not None and g.user.is_authenticated():
+		return redirect(url_for('index'))
+
 	form = LoginForm()
-	
-	if request.method == 'POST':
-		if form.validate() == False:
-			return render_template('login.html', form = form)
-		else:
-			login = form.login(form.email.data)
-			return redirect(url_for('profile')) if login else 'not okay'
-	elif request.method == 'GET':
+
+	if request.method == 'POST':	
+		user = form.validate_user()
+
+		if user is not False:
+			login_user(user)
+			flash('User successfuly singed in')
+			return redirect(url_for('index'))
+
+	else:
 		return render_template('login.html', form = form)
+
+	
+'''
+Signing out route
+'''
+@dreamcatcher.route('/signout')
+def signout():
+	logout_user()
+	return redirect(url_for('index'))
 
 
 '''
@@ -64,33 +96,31 @@ def signup():
 			return render_template('signup.html', form = form)
 		else:
 			register_user = form.register_user(form.username.data, form.email.data, form.password.data)
-
-			return redirect(url_for('profile')) if register_user else 'not okay'
-
+			if register_user is not None:
+				login_user(register_user)
+				flash('User succesfuly registered')
+				return redirect(url_for('index'))
 
 	elif request.method == 'GET':
 		return render_template('signup.html', form = form)
 
+
 '''
-Profile route
+User page route
 '''
-@dreamcatcher.route('/profile')
-def profile():
-
-	if 'email' not in session:
-		#return redirect(url_for('signin'))
-		return 'no email in session'
-
-	profile = Profile()
-	user = profile.get_user(session['email'])
-
+@dreamcatcher.route('/user/<username>')
+@login_required
+def user(username):
+	user = User.query.filter_by(username = username).first()
 	if user is None:
-		#return redirect(url_for('signin'))
-		return 'no user'
-	else:
-		return render_template('profile.html', username = user.username)
+		flash('User ' + username + ' not found')
+		return redirect(url_for('index'))
 
+	dreams = [
+		{ 'title': 'Dream title', 'content': 'Bacon ipsum dolor sit amet drumstick brisket cow pork chop short loin pork loin tenderloin venison hamburger. Fatback capicola swine, ribeye pastrami tail jerky brisket kielbasa boudin. Strip steak sirloin ground round shank beef ribs hamburger tenderloin. Bacon turkey flank, pancetta ground round tail chicken frankfurter venison. Strip steak sirloin leberkas pastrami salami shank prosciutto kielbasa. Jerky shoulder pork bresaola. T-bone cow jerky venison, biltong meatloaf prosciutto brisket jowl ribeye tri-tip tongue capicola shoulder.'},
+		{ 'title': 'Dream title', 'content': 'Bacon ipsum dolor sit amet drumstick brisket cow pork chop short loin pork loin tenderloin venison hamburger. Fatback capicola swine, ribeye pastrami tail jerky brisket kielbasa boudin. Strip steak sirloin ground round shank beef ribs hamburger tenderloin. Bacon turkey flank, pancetta ground round tail chicken frankfurter venison. Strip steak sirloin leberkas pastrami salami shank prosciutto kielbasa. Jerky shoulder pork bresaola. T-bone cow jerky venison, biltong meatloaf prosciutto brisket jowl ribeye tri-tip tongue capicola shoulder.'}
+	]
 
-
+	return render_template('user.html', user = user, dreams = dreams)
 
 

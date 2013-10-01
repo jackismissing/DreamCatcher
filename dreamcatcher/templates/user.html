@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Profile</h1>
+
+	{% if user %}
+		<p>Welcome, {{user.username}}</p>
+	{% endif %}
+
+	{% if dreams %}
+		<h2>Dreams</h2>
+		{% for dream in dreams %}
+			<span>{{ dream.title }}</span>
+			<p>{{ dream.content}}</p>
+		{% endfor %}
+	{% endif %}
+	
+{% endblock %}

@@ -1,4 +1,3 @@
-from flask import session
 from flask.ext.wtf import Form
 from wtforms import TextField, PasswordField, SubmitField
 from wtforms.validators import Required, Email
@@ -17,23 +16,17 @@ class LoginForm(Form):
 	'''
 	Form & Email & Password validation
 	'''
-	def validate(self):
+	def validate_user(self):
 		if not Form.validate(self):
 			return False
 
 		user = User.query.filter_by(email = self.email.data).first()
 		if user and user.check_password(self.password.data):
-			return True
+			return user
 		else:
 			self.email.errors.append('Invalid email or password')
 			return False
 
-	def login(self, email):
-		try:
-			session['email'] = email    #Add user email to session 
-			return True
-		except Exception as e:
-			return False
 
 class SignupForm(Form):
 
@@ -68,8 +61,8 @@ class SignupForm(Form):
 			newuser = User(username = username, email = email, password = password)
 			db.session.add(newuser)
 			db.session.commit()
-			session['email'] = email    #Add user email to session 
-			return True
+			user = User.query.filter_by(email = email).first()
+			return user
 		except Exception as e:
 			db.session.flush()
-			return False
+			return None
